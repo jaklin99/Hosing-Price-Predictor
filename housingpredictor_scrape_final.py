@@ -8,7 +8,7 @@ Original file is located at
 
 # **House Price Prediction with Linear Regression and Random Forest**
 
-The aim of this project is to predict real-estate prices using one basic machine learning algorithm, Linear Regression, and one advanced algorithm, Random Forest. Both will show different results for the accuracy.
+The aim of this project is to predict real-estate prices using the machine learning algorithm, Linear Regression, Random Forest. Both will show different results for the accuracy. Also, I will use regression with regularization such as Ridge and Lasso to try to improve the prediction accuracy.
 
 # **Imports**
 """
@@ -288,7 +288,7 @@ print(df['PRICE'])
 
 Examining the data distributions of the features. We will start with the target variable, `PRICE`, to make sure it's normally distributed.
 
-This is important because most machine learning algorithms make the assumption that the data is normal distributed. When data fits a normal distribution, statements about the price using analytical techniques will be made.
+This is important because most machine learning algorithms make the assumption that the data is normally distributed. When data fits a normal distribution, statements about the price using analytical techniques will be made.
 """
 
 sns.distplot(df['PRICE'])
@@ -334,7 +334,9 @@ sns.factorplot('POSTCODE', 'LogOfPrice', data=df,kind='bar',size=3,aspect=6)
 
 """>The diagram represents the `price` of a rpoperty, depending on its `postcode`.
 
-# **Train-Test Split dataset**
+# **Preparing the data for training the models**
+
+**Train-Test Split dataset**
 
 > Necessary imports
 """
@@ -362,12 +364,12 @@ df.fillna(0)
 df.dropna(inplace=True)
 
 # set the target and predictors
-y = df.PRICE  # target
+y = df.LogOfPrice  # target
 
 # use only those input features with numeric data type 
 df_temp = df.select_dtypes(include=["int64","float64"]) 
 
-X = df_temp.drop(["PRICE"],axis=1)  # predictors
+X = df_temp.drop(["LogOfPrice"],axis=1)  # predictors
 
 """To split the dataset, I will use random sampling with 80/20 train-test split; that is, 80% of the dataset will be used for training and set aside 20% for testing:"""
 
@@ -381,11 +383,32 @@ df.isnull()
 Two models will be built and evaluated by their performances with R-squared metric. Additionally, insights on the features that are strong predictors of house prices, will be analised .
 
 **Linear Regression**
+
+To fit a linear regression model, the features which have a high correlation with the target variable PRICE are selected. By looking at the correlation matrix, it is noticable that the rooms and the living area have a strong correlation with the price ('Log of price').
 """
+
+correlation_matrix = df.corr().round(2)
+# annot = True to print the values inside the square
+sns.heatmap(data=correlation_matrix, annot=True)
 
 lr = LinearRegression()
 # fit optimal linear regression line on training data
 lr.fit((X_train),y_train)
+
+"""Root Mean Square Error (RMSE) is the standard deviation of the residuals (prediction errors). Residuals are a measure of how far from the regression line data points are; RMSE is a measure of how spread out these residuals are. In other words, it tells you how concentrated the data is around the line of best fit."""
+
+# model evaluation for training set
+y_train_predict = lr.predict(X_train)
+rmse = (np.sqrt(mean_squared_error(y_train, y_train_predict)))
+
+print("The model performance for training set:")
+print('RMSE is {}'.format(rmse))
+
+# model evaluation for testing set
+y_test_predict = lr.predict(X_test)
+rmse = (np.sqrt(mean_squared_error(y_test, y_test_predict)))
+print("The model performance for testing set:")
+print('RMSE is {}'.format(rmse))
 
 #predict y_values using X_test set
 yr_hat = lr.predict(X_test)
@@ -393,8 +416,10 @@ yr_hat = lr.predict(X_test)
 lr_score =lr.score((X_test),y_test)
 print("Accuracy: ", lr_score)
 
-from sklearn.metrics import mean_squared_error
-print ('RMSE is: \n', mean_squared_error(y_test, yr_hat))
+# plotting the y_test vs y_pred
+# ideally should have been a straight line
+plt.scatter(y_test, y_test_predict)
+plt.show()
 
 actual_values = y_test
 plt.scatter(yr_hat, actual_values, alpha=.75,
@@ -402,7 +427,23 @@ plt.scatter(yr_hat, actual_values, alpha=.75,
 plt.xlabel('Predicted Price')
 plt.ylabel('Actual Price')
 plt.title('Linear Regression Model')
+plt.show()
 #pltrandom_state=None.show()
+
+from scipy import stats
+
+#Execute a method that returns the important key values of Linear Regression
+slope, intercept, r, p, std_err = stats.linregress(yr_hat, y_test)
+#Create a function that uses the slope and intercept values to return a new value. This new value represents where on the y-axis the corresponding x value will be placed
+def myfunc(x):
+  return slope * x + intercept
+
+mymodel = list(map(myfunc, yr_hat))
+#Draw the scatter plot
+plt.scatter(yr_hat, y_test)
+#Draw the line of linear regression
+plt.plot(yr_hat, mymodel)
+plt.show()
 
 """Using cross-validation to see whether the model is over-fitting the data."""
 
@@ -414,7 +455,66 @@ print("R2: ", lr_cv.mean())
 """>It doesn't appear that for this train-test dataset the model is  over-fitting the data (the cross-validation performance is very close in value).
 
 **Random Forest**
+
+The library sklearn.ensemble is used to solve regression problems via Random forest. The most important parameter is the n_estimators parameter. This parameter defines the number of trees in the random forest.
 """
+
+# Feature Scaling
+from sklearn.preprocessing import StandardScaler
+
+sc = StandardScaler()
+X_train = sc.fit_transform(X_train)
+X_test = sc.transform(X_test)
+
+regressor = RandomForestRegressor(n_estimators=20, random_state=0)
+regressor.fit(X_train, y_train)
+y_pred = regressor.predict(X_test)
+
+"""Evaluating the Algorithm:
+The last and final step of solving a machine learning problem is to evaluate the performance of the algorithm. For regression problems the metrics used to evaluate an algorithm are mean absolute error, mean squared error, and root mean squared error.
+"""
+
+from sklearn import metrics
+
+print('Mean Absolute Error:', metrics.mean_absolute_error(y_test, y_pred))
+print('Mean Squared Error:', metrics.mean_squared_error(y_test, y_pred))
+print('Root Mean Squared Error:', np.sqrt(metrics.mean_squared_error(y_test, y_pred)))
+
+"""Training the model"""
+
+# Import the model we are using
+from sklearn.ensemble import RandomForestRegressor
+# Instantiate model with 1000 decision trees
+rf = RandomForestRegressor(n_estimators = 1000, random_state = 42)
+# Train the model on training data
+rf.fit(X_train, y_train)
+
+"""Making predictions on the test set:
+
+When performing regression, the absolute error should be used.It needs to be checked how far away the average prediction is from the actual value so the absolute value has to be calculated.
+"""
+
+# Use the forest's predict method on the test data
+predictions = rf.predict(X_test)
+# Calculate the absolute errors
+errors = abs(predictions - y_test)
+# Print out the mean absolute error (mae)
+print('Mean Absolute Error:', round(np.mean(errors), 2), 'degrees.')
+
+"""> There is a 0.12 improvement.
+
+Determine performance metrics:
+
+To put the predictions in perspective, accuracy can be calculated by using the mean average percentage error subtracted from 100 %.
+"""
+
+# Calculate mean absolute percentage error (MAPE)
+mape = 100 * (errors /y_test)
+# Calculate and display accuracy
+accuracy = 100 - np.mean(mape)
+print('Accuracy:', round(accuracy, 2), '%.')
+
+"""> The model has learned how to predict the price with 98% accuracy."""
 
 rfr = RandomForestRegressor()
 rfr.fit(X_train, y_train) # gets the parameters for the rfr model
@@ -445,7 +545,10 @@ values = [value for value, predictors in top_15_predictors]
 predictors = [predictors for value, predictors in top_15_predictors]
 print(predictors)
 
-"""**Plotting the feauture importance of the Random forest.**"""
+"""**Plotting the feauture importance of the Random forest.**
+
+Plotting the feature importances to illustrate the disparities in the relative significance of the variables.
+"""
 
 plt.figure()
 plt.title( "Feature importances")
