@@ -487,7 +487,7 @@ print('RMSE is {}'.format(rmse))
 yr_lasso = lasso.predict(X_test)
 
 lasso_score =lasso.score((X_test),y_test)
-print("Accuracy: ", lr_score)
+print("Accuracy: ", lasso_score)
 
 lasso_cv = cross_val_score(lasso, X, y, cv = 5, scoring = 'r2')
 print ("Cross-validation results: ", lasso_cv)
@@ -675,7 +675,8 @@ plt.bar(range(len(predictors)), values,color="r", align="center");
 plt.xticks(range(len(predictors)), predictors, rotation=90);
 
 """The idea behind the plotting of feauture importance is that after evaluating the performance of the model, the values of a feature of interest must be permuted and reevaluate model performance.
-The feature importance (variable importance) describes which features are relevant.
+The feature importance (variable importance) describes which features are relevant. 
+>Random Forest determined that overall the living area of a home is by far the most important predictor. Following are the sizes of above rooms and postcode.
 
 # **Conclusion**
 **Data collection:**
@@ -692,7 +693,43 @@ I tried different types of data transforms to expose the data structure better, 
 
 **Modelling:**
 
-I used two models to determine the accuracy - Linear Regression and Random Forest.
+I used four models to determine the accuracy - Linear Regression, Lasso Regression and Ridge Regression, Random Forest.
 
-Linear Regression turns out to be the more accurate model for predicting the house price. It scored an estimated accuracy of 68%, out performing the Random Forest - 66%. Random Forest determined that overall the living area of a home is by far the most important predictor. Following are the sizes of above rooms and postcode.
+From the exploring of the models RMSE:
+
+* Linear Regression score: 0.2003 (0.1887)
+
+* Lasso score: 0.5 (0.4675)
+
+* Ridge score: 0.2 (0.1877)
+
+* Random forest score: 0.2372 
+
+> RMSE values between 0.2 and 0.5 shows that the model can relatively predict the data accurately. All of the models showed values in this range.
+
+From the exploring of the models accuracy: 
+
+* Linear Regression score:  0.80 (80%)
+
+* Lasso score: 0.82 (82%)
+
+* Ridge score: 0.86 (86%)
+
+* Random forest score: 98.13 %
+
+From the exploring of the models cross-validation:  
+
+* Linear Regression score:  R2: 0.7308604883584712
+
+* Lasso score: R2:  0.6532616143265344
+
+* Ridge score: R2:  0.7310756447849953
+
+* Random forest: R2:  0.7742740242196954
+
+Random forest turns out to be the more accurate model for predicting the house price. 
+
+All of the models showed RMSE values between 0.2 and 0.5 so that they show  relatively accurate predictions of the data. 
+
+I evaluated the models performances with R-squared metric and the one that is overfitting the least is the Linear Regression.
 """
