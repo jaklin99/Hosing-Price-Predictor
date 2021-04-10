@@ -395,7 +395,11 @@ lr = LinearRegression()
 # fit optimal linear regression line on training data
 lr.fit((X_train),y_train)
 
-"""Root Mean Square Error (RMSE) is the standard deviation of the residuals (prediction errors). Residuals are a measure of how far from the regression line data points are; RMSE is a measure of how spread out these residuals are. In other words, it tells you how concentrated the data is around the line of best fit."""
+"""Root Mean Square Error (RMSE) is the standard deviation of the residuals (prediction errors). Residuals are a measure of how far from the regression line data points are; RMSE is a measure of how spread out these residuals are. In other words, it tells you how concentrated the data is around the line of best fit.
+>RMSE values between 0.2 and 0.5 shows that the model can relatively predict the data accurately. In this case, it is exactly 0.2, so it is relatively accurate.
+"""
+
+from sklearn.metrics import mean_squared_error
 
 # model evaluation for training set
 y_train_predict = lr.predict(X_train)
@@ -415,11 +419,6 @@ yr_hat = lr.predict(X_test)
 
 lr_score =lr.score((X_test),y_test)
 print("Accuracy: ", lr_score)
-
-# plotting the y_test vs y_pred
-# ideally should have been a straight line
-plt.scatter(y_test, y_test_predict)
-plt.show()
 
 actual_values = y_test
 plt.scatter(yr_hat, actual_values, alpha=.75,
@@ -454,7 +453,127 @@ print("R2: ", lr_cv.mean())
 
 """>It doesn't appear that for this train-test dataset the model is  over-fitting the data (the cross-validation performance is very close in value).
 
-**Random Forest**
+**Regularization:**
+
+
+The alpha parameter in ridge and lasso regularizes the regression model. The regression algorithms with regularization differ from linear regression in that they try to penalize those features that are not significant in our prediction. Ridge will try to reduce their effects (i.e., shrink their coeffients) in order to optimize all the input features. Lasso will try to remove the not-significant features by making their coefficients zero. In short, Lasso (L1 regularization) can eliminate the not-significant features, thus performing feature selection while Ridge (L2 regularization) cannot.
+
+**Lasso regression**
+"""
+
+lasso = Lasso(alpha = 1)  # sets alpha to almost zero as baseline
+lasso.fit(X_train, y_train)
+
+"""RMSE tells you how concentrated the data is around the line of best fit. """
+
+# model evaluation for training set
+y_train_l_predict = lasso.predict(X_train)
+rmse = (np.sqrt(mean_squared_error(y_train, y_train_l_predict)))
+
+print("The model performance for training set:")
+print('RMSE is {}'.format(rmse))
+
+"""RMSE values between 0.2 and 0.5 shows that the model can relatively predict the data accurately. In this case, it is 0.5, so it is relatively accurate."""
+
+# model evaluation for testing set
+y_test_l_predict = lasso.predict(X_test)
+rmse = (np.sqrt(mean_squared_error(y_test, y_test_l_predict)))
+print("The model performance for testing set:")
+print('RMSE is {}'.format(rmse))
+
+"""RMSE values between 0.2 and 0.5 shows that the model can relatively predict the data accurately. In this case, it is 0.5, so it is relatively accurate."""
+
+#predict y_values using X_test set
+yr_lasso = lasso.predict(X_test)
+
+lasso_score =lasso.score((X_test),y_test)
+print("Accuracy: ", lr_score)
+
+lasso_cv = cross_val_score(lasso, X, y, cv = 5, scoring = 'r2')
+print ("Cross-validation results: ", lasso_cv)
+print ("R2: ", lasso_cv.mean())
+
+actual_values = y_test
+plt.scatter(yr_lasso, actual_values, alpha=.75,
+            color='b') #alpha helps to show overlapping data
+plt.xlabel('Predicted Price')
+plt.ylabel('Actual Price')
+plt.title('Lasso Regression Model')
+plt.show()
+#pltrandom_state=None.show()
+
+from scipy import stats
+
+#Execute a method that returns the important key values of Linear Regression
+slope, intercept, r, p, std_err = stats.linregress(yr_lasso, y_test)
+#Create a function that uses the slope and intercept values to return a new value. This new value represents where on the y-axis the corresponding x value will be placed
+def myfunc(x):
+  return slope * x + intercept
+
+mymodel = list(map(myfunc, yr_lasso))
+#Draw the scatter plot
+plt.scatter(yr_lasso, y_test)
+#Draw the line of linear regression
+plt.plot(yr_lasso, mymodel)
+plt.show()
+
+"""**Ridge regression**"""
+
+ridge = Ridge(alpha = 1)  # sets alpha to a default value as baseline  
+ridge.fit(X_train, y_train)
+
+# model evaluation for training set
+y_train_r_predict = ridge.predict(X_train)
+rmse = (np.sqrt(mean_squared_error(y_train, y_train_r_predict)))
+
+print("The model performance for training set:")
+print('RMSE is {}'.format(rmse))
+
+""">RMSE values between 0.2 and 0.5 shows that the model can relatively predict the data accurately. In this case, it is 0.2, so it is relatively accurate."""
+
+# model evaluation for testing set
+y_test_r_predict = ridge.predict(X_test)
+rmse = (np.sqrt(mean_squared_error(y_test, y_test_r_predict)))
+print("The model performance for testing set:")
+print('RMSE is {}'.format(rmse))
+
+""">RMSE values between 0.2 and 0.5 shows that the model can relatively predict the data accurately. In this case, it is rounded to 0.2, so it is relatively accurate."""
+
+#predict y_values using X_test set
+yr_ridge = ridge.predict(X_test)
+
+ridge_score =ridge.score((X_test),y_test)
+print("Accuracy: ", ridge_score)
+
+ridge_cv = cross_val_score(ridge, X, y, cv = 5, scoring = 'r2')
+print ("Cross-validation results: ", ridge_cv)
+print ("R2: ", ridge_cv.mean())
+
+actual_values = y_test
+plt.scatter(yr_ridge, actual_values, alpha=.75,
+            color='b') #alpha helps to show overlapping data
+plt.xlabel('Predicted Price')
+plt.ylabel('Actual Price')
+plt.title('Ridge Regression Model')
+plt.show()
+#pltrandom_state=None.show()
+
+from scipy import stats
+
+#Execute a method that returns the important key values of Linear Regression
+slope, intercept, r, p, std_err = stats.linregress(yr_ridge, y_test)
+#Create a function that uses the slope and intercept values to return a new value. This new value represents where on the y-axis the corresponding x value will be placed
+def myfunc(x):
+  return slope * x + intercept
+
+mymodel = list(map(myfunc, yr_ridge))
+#Draw the scatter plot
+plt.scatter(yr_ridge, y_test)
+#Draw the line of linear regression
+plt.plot(yr_ridge, mymodel)
+plt.show()
+
+"""**Random Forest**
 
 The library sklearn.ensemble is used to solve regression problems via Random forest. The most important parameter is the n_estimators parameter. This parameter defines the number of trees in the random forest.
 """
