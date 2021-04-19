@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Model</title>
+</head>
+<body>
+    <form method=post enctype=multipart/form-data>
+        Beds:  <input type="number" name="beds" min="1" max="10"><br>
+        Baths: <input type=number name="baths" min="1" max="10"><br>
+        Sqft:  <input type=number name="sqft"><br>
+        <input type=submit value=Submit>
+   </form>
+    My prediction: {{ pred }}
+</body>
+</html>
